@@ -151,13 +151,13 @@ function TargetCamera() {
   //       distanceFromTarget: 700 };
   // this.target = { x: 0, y: 0, z: 0 };
   this.eye = {
-	x: 0,
-	y: 0,
+	x: -128,
+	y: 432,
 	z: 50,
       rotZ: 1.78,
       rotH: 1.43,
       distanceFromTarget: 409 };
-  this.target = { x: 20, y: 20, z: 50 }; // position of target
+  this.target = { x: -115, y: 407, z: 50 }; // position of target
 }	
 
 TargetCamera.prototype.update = function() {
@@ -583,6 +583,11 @@ function initStep2(clientElements) {
 
 // var g_hudQuad;
 // var g_paint;
+var g_notiQuad;
+var g_notiPaint;
+var g_frdQuad;
+var g_frdPaint;
+var g_Quad3;
 
 // create welcome text
 function createWelcome3(){
@@ -593,7 +598,7 @@ function createWelcome3(){
 	                                      g_hudViewInfo);
 	
 	  g_hudQuad = canvasLib.createXYQuad(220, 25, -1, 512, 512, true);
-	  g_paint = g_mainPack.createObject('CanvasPaint');
+        g_paint = g_mainPack.createObject('CanvasPaint');
 	
 	 // g_paint.setOutline(3, [1, 1, 1, 1]);
 	  g_paint.textAlign = g_o3d.CanvasPaint.LEFT;
@@ -601,10 +606,82 @@ function createWelcome3(){
 	  g_paint.textTypeface = 'Arial';
 	  g_paint.color = [1, 1, 1, 1];
 	
+	g_notiQuad =  canvasLib.createXYQuad(650, 120, -1, 512, 512, true);
+    g_notiPaint = g_mainPack.createObject('CanvasPaint');
+	g_notiPaint.textAlign = g_o3d.CanvasPaint.LEFT;
+	  g_notiPaint.textSize = 12;
+	  g_notiPaint.textTypeface = 'Arial';
+	  g_notiPaint.color = [9, 200, 1, 1];
+	
+		g_frdQuad =  canvasLib.createXYQuad(640, 255, -1, 512, 512, true);
+    g_frdPaint = g_mainPack.createObject('CanvasPaint');
+	g_frdPaint.textAlign = g_o3d.CanvasPaint.LEFT;
+	  g_frdPaint.textSize = 12;
+	  g_frdPaint.textTypeface = 'Arial';
+	  g_frdPaint.color = [9, 200, 1, 1];
+	
+		g_Quad3 =  canvasLib.createXYQuad(640, 395, -1, 512, 512, true);
+		
 	// alert("createWelcome3");
 	  setHudText('Jackie, Welcome back to home.');
 
-
+     setNotiText("1 messges");
+setFrdText("2 frends updated");
+setText3("3 events");
+}
+function setText3(text) {
+  // if (g_showError) {
+  //    return;
+  //  }
+  var canvas = g_Quad3.canvas;
+    canvas.clear([0, 0, 0, 0]);
+    canvas.saveMatrix();
+    var lines = text.split('\n');
+    for (var ll = 0; ll < lines.length; ++ll) {
+      var tabs = lines[ll].split('\t');
+      for (var tt = 0; tt < tabs.length; ++tt) {
+        canvas.drawText(tabs[tt], 10 + tt * 120, 30 + 20 * ll, g_notiPaint);
+      }
+    }
+    canvas.restoreMatrix();
+  
+    g_Quad3.updateTexture();
+}
+function setFrdText(text) {
+  // if (g_showError) {
+  //    return;
+  //  }
+  var canvas = g_frdQuad.canvas;
+    canvas.clear([0, 0, 0, 0]);
+    canvas.saveMatrix();
+    var lines = text.split('\n');
+    for (var ll = 0; ll < lines.length; ++ll) {
+      var tabs = lines[ll].split('\t');
+      for (var tt = 0; tt < tabs.length; ++tt) {
+        canvas.drawText(tabs[tt], 10 + tt * 120, 30 + 20 * ll, g_frdPaint);
+      }
+    }
+    canvas.restoreMatrix();
+  
+    g_frdQuad.updateTexture();
+}
+function setNotiText(text) {
+  // if (g_showError) {
+  //    return;
+  //  }
+  var canvas = g_notiQuad.canvas;
+    canvas.clear([0, 0, 0, 0]);
+    canvas.saveMatrix();
+    var lines = text.split('\n');
+    for (var ll = 0; ll < lines.length; ++ll) {
+      var tabs = lines[ll].split('\t');
+      for (var tt = 0; tt < tabs.length; ++tt) {
+        canvas.drawText(tabs[tt], 10 + tt * 120, 30 + 20 * ll, g_notiPaint);
+      }
+    }
+    canvas.restoreMatrix();
+  
+    g_notiQuad.updateTexture();
 }
 /**
  * Sets the text on the hud.
@@ -827,8 +904,9 @@ function initStep3() {
                           1);
 		// alert("init312");*/
     g_iconBacks[ii] = new Image(g_textures[5], true);
-    g_iconBacks[ii].transform.translate(634, 17 + ii * 140, -2);
+    g_iconBacks[ii].transform.translate(634, 17 + ii * 140 +10, -2);
 
+	// draw icon
     // Make the icons' origin their center so we can easily rotate/scale them.
     g_icons[ii] = new Image(g_textures[ii], false);
   }
@@ -1116,8 +1194,8 @@ WalkTool.prototype.handleMouseMove = function(e) {
 		
 		if (dX != 0){ // look around
 			// use eye as origin for x,y of target 
-			 nx = this.camera.target.x -  this.camera.eye.x; //-20
-			 ny = this.camera.target.y -  this.camera.eye.y; //-20
+			 nx = this.camera.target.x -  this.camera.eye.x; 
+			 ny = this.camera.target.y -  this.camera.eye.y; 
 			// nl = Math.sqrt(Math.pow(nx,2)+Math.pow(ny,2)); 
 			// 		
 			// a = Math.atan(ny/nx)*180/Math.PI;
