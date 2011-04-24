@@ -44,6 +44,10 @@ o3djs.require('o3djs.material');
 o3djs.require('o3djs.pack');
 o3djs.require('o3djs.picking');
 o3djs.require('o3djs.scene');
+o3djs.require('o3djs.canvas');
+o3djs.require('o3djs.loader');
+
+
 
 var g_root;
 var g_o3d;
@@ -141,12 +145,17 @@ function getRelativeCoordinates(event, reference) {
 // The target camera has its z and y flipped because that's the way Scott
 // Lininger thinks.
 function TargetCamera() {
+  // this.eye = {
+  //       rotZ: -Math.PI / 3,
+  //       rotH: Math.PI / 3,
+  //       distanceFromTarget: 700 };
+  // this.target = { x: 0, y: 0, z: 0 };
   this.eye = {
-      rotZ: -Math.PI / 3,
-      rotH: Math.PI / 3,
-      distanceFromTarget: 700 };
-  this.target = { x: 0, y: 0, z: 0 };
-}
+      rotZ: 1.78,
+      rotH: 1.43,
+      distanceFromTarget: 409 };
+  this.target = { x: 0, y: 0, z: 0 }; // position of target
+}	
 
 TargetCamera.prototype.update = function() {
   var target = [this.target.x, this.target.y, this.target.z];
@@ -162,6 +171,19 @@ TargetCamera.prototype.update = function() {
   var up = [0, 0, 1];
   g_viewInfo.drawContext.view = g_math.matrix4.lookAt(eye, target, up);
   g_lightPosParam.value = eye;
+
+	// update status bar
+	
+	cx = document.getElementById("c_x");
+		//alert(cx.innnerHTML);
+		if (cx)
+				cx.innerHTML=this.eye.x;
+	document.getElementById("c_y").innerHTML=this.eye.y;
+	document.getElementById("c_z").innerHTML=this.eye.z;
+		document.getElementById("distance").innerHTML=this.eye.distanceFromTarget;
+		document.getElementById("rotZ").innerHTML=this.eye.rotZ;
+		document.getElementById("rotH").innerHTML=this.eye.rotH;
+	
 };
 
 var g_camera = new TargetCamera();
@@ -514,7 +536,9 @@ function initStep2(clientElements) {
   g_lightPosParam = paramObject.createParam('lightWorldPos', 'ParamFloat3');
   g_lightPosParam.value = eye;
 
+  
   doload();
+
 
   o3djs.event.addEventListener(g_o3dElement, 'mousedown', mouseDown);
   o3djs.event.addEventListener(g_o3dElement, 'mousemove', mouseMove);
@@ -541,8 +565,478 @@ function initStep2(clientElements) {
   // catch the click-and-drag events that originate from the list of items
   // and end up in the o3d element.
   document.addEventListener('mousemove', mouseMove, false);
+
+	createWelcome2();
+	createWelcome3();
+ 
 }
 
+// var g_hudQuad;
+// var g_paint;
+function createWelcome3(){
+	
+	// Make a canvas for text.
+	  var canvasLib = o3djs.canvas.create(g_mainPack,
+	                                      g_hudRoot,
+	                                      g_hudViewInfo);
+	
+	  g_hudQuad = canvasLib.createXYQuad(220, 25, -1, 512, 512, true);
+	  g_paint = g_mainPack.createObject('CanvasPaint');
+	
+	 // g_paint.setOutline(3, [1, 1, 1, 1]);
+	  g_paint.textAlign = g_o3d.CanvasPaint.LEFT;
+	  g_paint.textSize = 16;
+	  g_paint.textTypeface = 'Arial';
+	  g_paint.color = [1, 1, 1, 1];
+	
+	// alert("createWelcome3");
+	  setHudText('Jackie, Welcome back to home.');
+
+
+}
+/**
+ * Sets the text on the hud.
+ * @param {string} text The text to display.
+ */
+function setHudText(text) {
+  // if (g_showError) {
+  //    return;
+  //  }
+  var canvas = g_hudQuad.canvas;
+    canvas.clear([0, 0, 0, 0]);
+    canvas.saveMatrix();
+    var lines = text.split('\n');
+    for (var ll = 0; ll < lines.length; ++ll) {
+      var tabs = lines[ll].split('\t');
+      for (var tt = 0; tt < tabs.length; ++tt) {
+        canvas.drawText(tabs[tt], 10 + tt * 120, 30 + 20 * ll, g_paint);
+      }
+    }
+    canvas.restoreMatrix();
+  
+    g_hudQuad.updateTexture();
+}
+
+
+
+var g_textureUrls = [
+  'assets/purple-flower.png',   // 0
+  'assets/orange-flower.png',   // 1
+  'assets/egg.png',             // 2
+  'assets/gaugeback.png',       // 3
+  'assets/gauge.png',           // 4
+  'assets/iconback.png',        // 5
+  'assets/radar.png',           // 6
+  'assets/one-pixel-white.tga'  // 7
+];
+var g_materialUrls = [
+  'shaders/texture-colormult.shader',    // 0
+  'shaders/phong-with-colormult.shader'  // 1
+];
+var g_materials = [];
+var g_textures = [];
+var g_radar;
+var g_radarNeedle;
+var g_gaugeBack;
+var g_gauges = [];
+var g_gaugeFrames = [];
+var g_iconBacks = [];
+var g_icons = [];
+var g_selectedIndex = 0;
+var g_randSeed = 0;
+	
+function createWelcome2(){
+	// alert("createWecome21");	
+   // Create 2 root transforms, one for the 3d parts, one for the 2d parts.
+  // This is not strictly neccassary but it is helpful for organization.
+    g_3dRoot = g_pack.createObject('Transform');
+
+	g_hudRoot = g_pack.createObject('Transform');
+
+  // g_viewInfo = o3djs.rendergraph.createBasicView(
+  //      g_pack,
+  //      g_3dRoot,
+  //      g_client.renderGraphRoot);
+
+// alert("10");  here start render UI
+  // Create a second view for the hud. There are other ways to do this but
+  // this is the easiest.
+  g_hudViewInfo = o3djs.rendergraph.createBasicView(
+        g_pack,
+        g_hudRoot,
+        g_client.renderGraphRoot);
+// alert("11");
+  // Make sure the hud gets drawn after the 3d stuff
+  g_hudViewInfo.root.priority = g_viewInfo.root.priority + 1;
+
+  // Turn off clearing the color for the hud since that would erase the 3d
+  // parts but leave clearing the depth and stencil so the HUD is unaffected
+  // by anything done by the 3d parts.
+  g_hudViewInfo.clearBuffer.clearColorFlag = false;
+
+  // Set culling to none so we can flip images using rotation or negative scale.
+  g_hudViewInfo.zOrderedState.getStateParam('CullMode').value =
+      g_o3d.State.CULL_NONE;
+  g_hudViewInfo.zOrderedState.getStateParam('ZWriteEnable').value = false;
+
+  // Create an orthographic matrix for 2d stuff in the HUD.
+  // We assume the area is 800 pixels by 600 pixels and therefore we can
+  // position things using a 0-799, 0-599 coordinate system. If we change the
+  // size of the client area everything will get scaled to fix but we don't
+  // have to change any of our code. See 2d.html
+  g_hudViewInfo.drawContext.projection = g_math.matrix4.orthographic(
+      0 + 0.5,
+      800 + 0.5,
+      600 + 0.5,
+      0 + 0.5,
+      0.001,
+      1000);
+
+  g_hudViewInfo.drawContext.view = g_math.matrix4.lookAt(
+      [0, 0, 1],   // eye
+      [0, 0, 0],   // target
+      [0, 1, 0]);  // up
+
+  g_viewInfo.drawContext.projection = g_math.matrix4.perspective(
+      g_math.degToRad(30), // 30 degree fov.
+      g_client.width / g_client.height,
+      0.1,                // Near plane.
+      5000);              // Far plane.
+
+
+ for (var ii = 0; ii < g_materialUrls.length; ++ii) {
+
+    var material = o3djs.material.createMaterialFromFile(
+        g_pack,
+        g_materialUrls[ii],
+        g_viewInfo.performanceDrawList);
+
+    // Set the default params. We'll override these with params on transforms.
+    material.getParam('colorMult').value = [1, 1, 1, 1];
+
+    g_materials[ii] = material;
+  }
+
+  // Set the materials' drawLists
+  g_materials[0].drawList = g_hudViewInfo.zOrderedDrawList;
+  g_materials[1].drawList = g_viewInfo.performanceDrawList;
+
+  g_materials[1].getParam('lightWorldPos').value = [500, 1000, 0];
+  g_materials[1].getParam('lightIntensity').value = [1, 1, 1, 1];
+  g_materials[1].getParam('ambientIntensity').value = [0.1, 0.1, 0.1, 1];
+  g_materials[1].getParam('ambient').value = [1, 1, 1, 1];
+  g_materials[1].getParam('diffuse').value = [1, 1, 1, 1];
+  g_materials[1].getParam('specular').value = [0.5, 0.5, 0.5, 1];
+  g_materials[1].getParam('shininess').value = 20;
+
+  // Create a 2d plane for images. createPlane makes an XZ plane by default
+  // so we pass in matrix to rotate it to an XY plane. We could do
+  // all our manipluations in XZ but most people seem to like XY for 2D.
+  g_planeShape = o3djs.primitives.createPlane(
+      g_pack,
+      g_materials[0],
+      1,
+      1,
+      1,
+      1,
+      [[1, 0, 0, 0],
+       [0, 0, 1, 0],
+       [0,-1, 0, 0],
+       [0, 0, 0, 1]]);
+
+  // Create a ground plane
+  g_groundShape = o3djs.primitives.createPlane(
+      g_pack,
+      g_materials[1],
+      30,
+      30,
+      10,
+      10);
+
+  // Create a cube with its origin at the bottom center.
+  g_cubeShape = o3djs.primitives.createCube(
+      g_pack,
+      g_materials[1],
+      1,
+      [[0.9, 0, 0, 0],
+       [0, 1, 0, 0],
+       [0, 0, 0.9, 0],
+       [0, 0.5, 0, 1]]);
+
+  // Load all the textures.
+  var loader = o3djs.loader.createLoader(initStep3);
+  for (var ii = 0; ii < g_textureUrls.length; ++ii) {
+    loadTexture(loader, g_textureUrls[ii], ii);
+  }
+  loader.finish();
+// alert("createWelcome2");
+}
+/**
+ * Loads a texture and saves it in the g_textures array.
+ * @param {Object} loader The loader to load with.
+ * @param {stinrg} url of texture to load
+ * @param {number} index Index to put texture in g_textures
+ */
+function loadTexture(loader, url, index) {
+  loader.loadTexture(g_pack, url, function(texture, exception) {
+    if (exception) {
+      alert(exception);
+    } else {
+      g_textures[index] = texture;
+    }
+  });
+}
+
+/**
+ * Now that the textures are loaded continue.
+ */
+function initStep3() {
+	// alert("init3");
+  // Setup the hud images.
+  g_radar = new Image(g_textures[6], true);
+  g_radar.transform.translate(3, 1, -2);
+
+  g_radarNeedle = new Image(g_textures[7], false);
+  g_radarNeedle.scaleTransform.translate(0, 0.5, 0);
+
+  g_gaugeBack = new Image(g_textures[3], true);
+  g_gaugeBack.transform.translate(201, 17, -2);
+	// alert("init31");
+  for (var ii = 0; ii < 3; ++ii) {
+/*		// alert("init310"+g_gaugeFrames);
+    g_gaugeFrames[ii] = new Image(g_textures[4], true);
+	// alert("init310"+g_gaugeFrames[ii]);
+    g_gaugeFrames[ii].transform.translate(220, 39 + ii * 21, -2);
+		// alert("init311");
+    g_gauges[ii] = new Image(g_textures[7], true);
+    g_gauges[ii].setColor((ii == 0) ? 1 : 0,
+                          (ii == 1) ? 1 : 0,
+                          (ii == 2) ? 1 : 0,
+                          1);
+		// alert("init312");*/
+    g_iconBacks[ii] = new Image(g_textures[5], true);
+    g_iconBacks[ii].transform.translate(634, 17 + ii * 140, -2);
+
+    // Make the icons' origin their center so we can easily rotate/scale them.
+    g_icons[ii] = new Image(g_textures[ii], false);
+  }
+	// alert("init315");
+  resetIcons();
+
+  // // make the ground plane.
+  // var transform = g_pack.createObject('Transform');
+  // transform.addShape(g_groundShape);
+  // transform.parent = g_3dRoot;
+  // transform.createParam('colorMult', 'ParamFloat4').value =
+  //     [166 / 255, 124 / 255, 82 / 255, 1];
+  // 
+  // // Make a random city with 25 blocks.
+  // for (var bz = -2; bz <= 2; ++bz) {
+  //   for (var bx = -2; bx <= 2; ++bx) {
+  //     for (var xx = 0; xx < 4; ++xx) {
+  //       createBuilding(bx * 5 + 1 + xx - 1.5, bz * 5 + 1 - 1.5);
+  //       createBuilding(bx * 5 + 1 + xx - 1.5, bz * 5 + 4 - 1.5);
+  //     }
+  //     for (var zz = 1; zz < 3; ++zz) {
+  //       createBuilding(bx * 5 + 1 - 1.5, bz * 5 + 1 + zz - 1.5);
+  //       createBuilding(bx * 5 + 4 - 1.5, bz * 5 + 1 + zz - 1.5);
+  //     }
+  //   }
+  // }
+
+  // Setup an onrender callback for animation.
+  // g_client.setRenderCallback(onrender);
+
+  g_finished = true;  // for selenium testing.
+// alert("init3000");
+}
+
+// /**
+//  * Creates a building.
+//  * @param {number} x X coordinate to create building at
+//  * @param {number} z Y coordinate to create building at
+//  */
+// function createBuilding(x, z) {
+//   var transform = g_pack.createObject('Transform');
+//   transform.addShape(g_cubeShape);
+//   transform.parent = g_3dRoot;
+//   transform.translate(x, 0, z);
+//   transform.scale(1, g_math.pseudoRandom() * 3 + 1, 1);
+//   transform.createParam('colorMult', 'ParamFloat4').value = [
+//     g_math.pseudoRandom() * 0.6 + 0.4,
+//     g_math.pseudoRandom() * 0.6 + 0.4,
+//     g_math.pseudoRandom() * 0.6 + 0.4,
+//     1];
+// }
+
+/**
+ * Resets the orientation of the icons.
+ */
+function resetIcons() {
+  for (var ii = 0; ii < g_icons.length; ++ii) {
+    g_icons[ii].transform.identity();
+    g_icons[ii].transform.translate(634 + 6 + 64, 17 + ii * 140 + 5 + 64, -1);
+    g_icons[ii].transform.scale(0.8, 0.8, 0);
+  }
+}
+
+/**
+ * Called every frame.
+ * @param {!o3d.RenderEvent} renderEvent Rendering Information.
+ */
+function onrender(renderEvent) {
+
+  var elapsedTime = renderEvent.elapsedTime;
+  g_clock += elapsedTime * g_timeMult;
+
+  g_selectedIndex = Math.floor(g_clock / 3) % 3;
+
+  // Fly the camera around the city.
+  // var eye = [
+  //     Math.sin(g_clock * g_cameraSpeed) * g_cameraRadius,
+  //     10,
+  //     Math.cos(g_clock * g_cameraSpeed) * g_cameraRadius];
+  // 
+  // g_viewInfo.drawContext.view = g_math.matrix4.lookAt(
+  //     eye,
+  //     [0, 0, 0],  // target
+  //     [0, 1, 0]); // up
+
+  for (var i = 0; i < g_icons.length; i++) {
+    var icon = g_icons[i];
+    icon.transform.identity();
+    icon.transform.translate(
+        634 + 6 + 64, 17 + i * 140 + 5 + 64, -1);
+    if (i == g_selectedIndex) {
+      icon.transform.rotateZ(g_clock * -1);
+      var scale = Math.sin(g_clock * 15) * 0.1 + 0.7;
+      icon.transform.scale(scale, scale, 1);
+    } else {
+      icon.transform.scale(0.8, 0.8, 0);
+    }
+  }
+
+  // // Adjust the gauges
+  // for (var ii = 0; ii < 3; ++ii) {
+  //   var gauge = g_gauges[ii];
+  //   gauge.transform.identity();
+  //   gauge.transform.translate(220 + 1, 39 + ii * 21 + 1, -1);
+  //   switch (ii) {
+  //     case 0:
+  //       gauge.transform.scale((Math.sin(g_clock) * 0.5 + 0.5) * g_gaugeWidth,
+  //                             g_gaugeHeight,
+  //                             1);
+  //     break;
+  //     case 1:
+  //       gauge.transform.scale((Math.cos(g_clock) * 0.5 + 0.5) * g_gaugeWidth,
+  //                             g_gaugeHeight,
+  //                             1);
+  //     break;
+  //     case 2:
+  //       gauge.transform.scale(
+  //           (Math.cos(g_clock * 3.2) * 0.2 + 0.6) * g_gaugeWidth,
+  //           g_gaugeHeight,
+  //           1);
+  //     break;
+  //   }
+  // }
+
+  // Rotate the radar
+  g_radarNeedle.transform.identity();
+  g_radarNeedle.transform.translate(93, 89, 0);
+  g_radarNeedle.transform.rotateZ(g_clock * 3);
+  g_radarNeedle.transform.scale(1, 80, 1);
+	
+ alert("onredner");
+}
+
+/**
+ * Creates an Image object which is a transform and a child scaleTransform
+ * scaled to match the texture
+ *
+ * @constructor
+ * @param {!o3d.Texture} texture The texture
+ * @param {boolean} opt_topLeft If true the origin of the image will be its
+ *    topleft corner, the default is the center of the image.
+ */
+function Image(texture, opt_topLeft) {
+// alert("create images0");
+  // create a transform for positioning
+  this.transform = g_pack.createObject('Transform');
+  this.transform.parent = g_hudRoot;
+
+  // create a transform for scaling to the size of the image just so
+  // we don't have to manage that manually in the transform above.
+  this.scaleTransform = g_pack.createObject('Transform');
+  this.scaleTransform.parent = this.transform;
+
+  // setup the sampler for the texture
+  this.sampler = g_pack.createObject('Sampler');
+  this.sampler.addressModeU = g_o3d.Sampler.CLAMP;
+  this.sampler.addressModeV = g_o3d.Sampler.CLAMP;
+  this.paramSampler = this.scaleTransform.createParam('texSampler0',
+                                                      'ParamSampler');
+  this.paramSampler.value = this.sampler;
+
+  // Setup our UV offsets and color multiplier
+  this.paramColorMult = this.scaleTransform.createParam('colorMult',
+                                                        'ParamFloat4');
+
+  this.setColor(1, 1, 1, 1);
+
+  this.sampler.texture = texture;
+  this.scaleTransform.addShape(g_planeShape);
+  if (opt_topLeft) {
+    this.scaleTransform.translate(texture.width / 2, texture.height / 2, 0);
+  }
+  this.scaleTransform.scale(texture.width, -texture.height, 1);
+// alert("create imagesz");
+}
+
+/**
+ * Sets the color multiplier for the image.
+ * @param {number} r Red component.
+ * @param {number} g Green component.
+ * @param {number} b Blue component.
+ * @param {number} a Alpha component.
+ */
+Image.prototype.setColor = function(r, g, b, a) {
+  this.paramColorMult.set(r, g, b, a);
+};
+
+
+// create welcome text
+function createWelcome(){
+
+	  // Create an instance of the canvas utilities library.
+  var canvasLib = o3djs.canvas.create(g_pack, g_client.root, g_viewInfo);
+
+  // Create a canvas surface to draw on.
+  var canvasQuad = canvasLib.createXYQuad(0, 0, 0, 100, 100, false);
+
+  canvasQuad.canvas.clear([1, 1, 1, 1]);
+  canvasQuad.updateTexture();
+
+	var textPaint = g_pack.createObject('CanvasPaint');
+	textPaint.color = [0, 0, 0, 1];
+  	textPaint.textSize = 24;
+	var drawTextBox = false;
+	var verticalPosition = 10;
+  	var horizontalPosition = 50;
+	textPaint.textTypeface = "Arial";
+  	var lineDimensions = textPaint.measureText("Arial");
+
+	verticalPosition += lineDimensions[3] - lineDimensions[1] + 20;
+
+	canvasQuad.canvas.drawText("Arial",
+                               horizontalPosition,
+                               verticalPosition,
+                               textPaint);
+ canvasQuad.updateTexture();
+g_finished = true;
+
+alert("welcome");
+}
 function dragOver(e) {
   if (g_urlToInsert != null) {
     doload(g_urlToInsert);

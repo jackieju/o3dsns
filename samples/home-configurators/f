@@ -1,0 +1,85 @@
+Index: viewer.js
+===================================================================
+--- viewer.js	(revision 236)
++++ viewer.js	(working copy)
+@@ -141,12 +141,17 @@
+ // The target camera has its z and y flipped because that's the way Scott
+ // Lininger thinks.
+ function TargetCamera() {
++  // this.eye = {
++  //       rotZ: -Math.PI / 3,
++  //       rotH: Math.PI / 3,
++  //       distanceFromTarget: 700 };
++  // this.target = { x: 0, y: 0, z: 0 };
+   this.eye = {
+-      rotZ: -Math.PI / 3,
+-      rotH: Math.PI / 3,
+-      distanceFromTarget: 700 };
+-  this.target = { x: 0, y: 0, z: 0 };
+-}
++      rotZ: 1,
++      rotH: 1,
++      distanceFromTarget: 150 };
++  this.target = { x: 0, y: 0, z: 0 }; // position of target
++}	
+ 
+ TargetCamera.prototype.update = function() {
+   var target = [this.target.x, this.target.y, this.target.z];
+@@ -162,6 +167,13 @@
+   var up = [0, 0, 1];
+   g_viewInfo.drawContext.view = g_math.matrix4.lookAt(eye, target, up);
+   g_lightPosParam.value = eye;
++
++	// update status bar
++	// cx = document.getElementById("c_x");
++	// if (cx)
++	// 		cx.innerHTML(this.eye.x);
++		// document.getElementById("c_y").innerHTML(this.eye.y);
++		// 		document.getElementById("c_z").innerHTML(this.eye.z);
+ };
+ 
+ var g_camera = new TargetCamera();
+Index: homedesigner.html
+===================================================================
+--- homedesigner.html	(revision 236)
++++ homedesigner.html	(working copy)
+@@ -88,7 +88,10 @@
+   <script type="text/javascript" src="pantool.js"></script>
+   <script type="text/javascript" src="zoomtool.js"></script>
+   <script type="text/javascript" src="deletetool.js"></script>
++  <script type="text/javascript" src="util.js"></script>
+ 
++
++
+ <script type="text/javascript" id="o3dscript">
+ /**
+  * A structure to store our list of catalog items that can be dragged in.
+@@ -126,10 +129,15 @@
+ 
+ </script>
+ <body onload="init();" onresize="resize();">
++	
++<div style="position:absolute;left:0;top:100;" id="status">
++	Camera: x <span id="c_x">0</span>  y <span id="c_y">0</span>  z <span id="c_">0</span>
++</div>
+ 
+ <div style="position:absolute;top:104px;left:0px;text-align:center;width:100%">
+ 
+ 
++
+ <table style="width:900px;" align="center"><tr>
+     <td width="100%" valign="top">
+ 
+@@ -166,6 +174,12 @@
+ </div>
+ 
+ </body>
++<script language="javascript">
++//$("#c_x").html("11");
++// c = document.getElementById("c_x");
++// c.innerHTML="dfsfs";
++// inspect(c);
++</script>
+ </html>
+ 
+ 

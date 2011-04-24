@@ -88,6 +88,9 @@ BODY {
   <script type="text/javascript" src="pantool.js"></script>
   <script type="text/javascript" src="zoomtool.js"></script>
   <script type="text/javascript" src="deletetool.js"></script>
+  <script type="text/javascript" src="util.js"></script>
+
+
 
 <script type="text/javascript" id="o3dscript">
 /**
@@ -126,8 +129,16 @@ var g_buildingAsset = '/cbassets/House_Roofless.o3dtgz';
 
 </script>
 <body onload="init();" onresize="resize();">
+	
+<div style="position:absolute;left:0;top:100;" id="status">
+	Camera: <br>x <span id="c_x">0</span> <br> y <span id="c_y">0</span> <br> z <span id="c_z">0</span> 
+	<br> distance <span id="distance">0</span>
+	<br> rotZ <span id="rotZ">0</span>
+	<br> rotH <span id="rotH">0</span>
+</div>
 
 <div style="position:absolute;top:104px;left:0px;text-align:center;width:100%">
+
 
 
 <table style="width:900px;" align="center"><tr>
@@ -166,6 +177,14 @@ var g_buildingAsset = '/cbassets/House_Roofless.o3dtgz';
 </div>
 
 </body>
+<script language="javascript">
+//$("#c_x").html("11");
+c =  document.getElementById("c_x");
+c.innerHTML="0.0";
+	
+
+// inspect(c);
+</script>
 </html>
 
 
