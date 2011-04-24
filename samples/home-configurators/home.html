@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 </title>
 <style type="text/css">
 BODY {
-  background-image: url(cb_images/unbranded_bg2.png);
+  background-image: url(cb_images/unbranded_bg3.png);
   background-position: top center;
   background-repeat: no-repeat;
   background-color: white;
@@ -57,7 +57,7 @@ BODY {
 #toolselector {
   width: 38px;
   height: 38px;
-  background-image: url(cb_images/toolselector.gif);
+/*  background-image: url(cb_images/toolselector.gif);*/
   position: relative;
   left: 9px;
   border: 0px;
@@ -71,7 +71,7 @@ BODY {
   border: 1px solid silver;
   margin: 1px;
   float: left;
-  background-image: url(cb_images/cb_item_thumbnails.jpg);
+ /* background-image: url(cb_images/cb_item_thumbnails.jpg);*/
 }
 
 #itemlist {
@@ -81,16 +81,13 @@ BODY {
 
 </style>
   <script type="text/javascript" src="../o3djs/base.js"></script>
-  <script type="text/javascript" src="viewer.js"></script>
+  <script type="text/javascript" src="viewer_home.js"></script>
   <script type="text/javascript" src="rotatetool.js"></script>
   <script type="text/javascript" src="movetool.js"></script>
   <script type="text/javascript" src="orbittool.js"></script>
   <script type="text/javascript" src="pantool.js"></script>
   <script type="text/javascript" src="zoomtool.js"></script>
   <script type="text/javascript" src="deletetool.js"></script>
-  <script type="text/javascript" src="util.js"></script>
-
-
 
 <script type="text/javascript" id="o3dscript">
 /**
@@ -129,18 +126,17 @@ var g_buildingAsset = '/cbassets/House_Roofless.o3dtgz';
 
 </script>
 <body onload="init();" onresize="resize();">
-	
+
 <div style="position:absolute;left:0;top:100;" id="status">
-	Camera: <br>x <span id="c_x">0</span> <br> y <span id="c_y">0</span> <br> z <span id="c_z">0</span> 
+	Camera: <br>x <span id="c_x">0</span> <br> y <span id="c_y">0</span> <br> z <span id="c_z">0</span> <br>
+	Target: <br>x <span id="t_x">0</span> <br> y <span id="t_y">0</span> <br> z <span id="t_z">0</span> 
 	<br> distance <span id="distance">0</span>
 	<br> rotZ <span id="rotZ">0</span>
 	<br> rotH <span id="rotH">0</span>
+		<br> debug <span id="debug">0</span>
 </div>
 
 <div style="position:absolute;top:104px;left:0px;text-align:center;width:100%">
-
-
-
 <table style="width:900px;" align="center"><tr>
     <td width="100%" valign="top">
 
@@ -150,7 +146,7 @@ var g_buildingAsset = '/cbassets/House_Roofless.o3dtgz';
       <div id="toolpanel"><div id="toolselector"></div></div>
     </td>
     <td valign="top" style="padding-right:8px">
-      <div id="contentpanel" style="width:222px;height:365px">
+      <!--div id="contentpanel" style="width:222px;height:365px">
       <div id="intro">
       <span style="font-size: 18px">Most Popular Items</span>
       <p>Drag and drop objects into the
@@ -160,7 +156,7 @@ var g_buildingAsset = '/cbassets/House_Roofless.o3dtgz';
       </div>
 
 
-      </div><br>
+      </div--><br>
     </td>
 </tr></table>
 </div>
@@ -175,16 +171,17 @@ var g_buildingAsset = '/cbassets/House_Roofless.o3dtgz';
 
   </div>
 </div>
-
-</body>
 <script language="javascript">
 //$("#c_x").html("11");
 c =  document.getElementById("c_x");
 c.innerHTML="0.0";
-	
+	// alert(Math.sin(30* Math.PI/180 ));
+		//alert(Math.atan(1)*180/Math.PI);
+	// alert(Math.pow(2,3));
 
 // inspect(c);
 </script>
+</body>
 </html>
 
 

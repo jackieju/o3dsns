@@ -151,25 +151,30 @@ function TargetCamera() {
   //       distanceFromTarget: 700 };
   // this.target = { x: 0, y: 0, z: 0 };
   this.eye = {
+	x: 0,
+	y: 0,
+	z: 50,
       rotZ: 1.78,
       rotH: 1.43,
       distanceFromTarget: 409 };
-  this.target = { x: 0, y: 0, z: 0 }; // position of target
+  this.target = { x: 20, y: 20, z: 50 }; // position of target
 }	
 
 TargetCamera.prototype.update = function() {
   var target = [this.target.x, this.target.y, this.target.z];
 
-  this.eye.x = this.target.x + Math.cos(this.eye.rotZ) *
-      this.eye.distanceFromTarget * Math.sin(this.eye.rotH);
-  this.eye.y = this.target.y + Math.sin(this.eye.rotZ) *
-      this.eye.distanceFromTarget * Math.sin(this.eye.rotH);
-  this.eye.z = this.target.z + Math.cos(this.eye.rotH) *
-      this.eye.distanceFromTarget;
+  // this.eye.x = this.target.x + Math.cos(this.eye.rotZ) *
+  //     this.eye.distanceFromTarget * Math.sin(this.eye.rotH);
+  // this.eye.y = this.target.y + Math.sin(this.eye.rotZ) *
+  //     this.eye.distanceFromTarget * Math.sin(this.eye.rotH);
+  // this.eye.z = this.target.z + Math.cos(this.eye.rotH) *
+  //     this.eye.distanceFromTarget;
 
-  var eye = [this.eye.x, this.eye.y, this.eye.z];
-  var up = [0, 0, 1];
-  g_viewInfo.drawContext.view = g_math.matrix4.lookAt(eye, target, up);
+   var eye = [this.eye.x, this.eye.y, this.eye.z];
+//   var eye = [100,10,50];
+ //  var target=[0,0,50];
+ // this.up = [0, 0, 1];
+  g_viewInfo.drawContext.view = g_math.matrix4.lookAt(eye, target, this.up);
   g_lightPosParam.value = eye;
 
 	// update status bar
@@ -180,14 +185,17 @@ TargetCamera.prototype.update = function() {
 				cx.innerHTML=this.eye.x;
 	document.getElementById("c_y").innerHTML=this.eye.y;
 	document.getElementById("c_z").innerHTML=this.eye.z;
-		document.getElementById("distance").innerHTML=this.eye.distanceFromTarget;
-		document.getElementById("rotZ").innerHTML=this.eye.rotZ;
-		document.getElementById("rotH").innerHTML=this.eye.rotH;
+	document.getElementById("t_x").innerHTML=this.target.x;
+	document.getElementById("t_y").innerHTML=this.target.y;
+	document.getElementById("t_z").innerHTML=this.target.z;
+	document.getElementById("distance").innerHTML=this.eye.distanceFromTarget;
+	document.getElementById("rotZ").innerHTML=this.eye.rotZ;
+	document.getElementById("rotH").innerHTML=this.eye.rotH;
 	
 };
 
 var g_camera = new TargetCamera();
-
+g_camera.up=[0,0,1];
 function peg(value, lower, upper) {
   if (value < lower) {
     return lower;
@@ -272,11 +280,11 @@ document.onmouseup = function(e) {
 function mouseDown(e) {
   // If the middle mouse button is used, then switch into the orbit tool,
   // Sketchup-style.
-  if (e.button == g_o3d.Event.BUTTON_MIDDLE) {
-    g_lastTool = g_currentTool;
-    g_lastSelectorLeft = $('toolselector').style.left;
-    selectTool(null, TOOL_ORBIT);
-  }
+  // if (e.button == g_o3d.Event.BUTTON_MIDDLE) {
+  //   g_lastTool = g_currentTool;
+  //   g_lastSelectorLeft = $('toolselector').style.left;
+  //   selectTool(null, TOOL_ORBIT);
+  // }
 
   if (g_currentTool != null) {
     g_currentTool.handleMouseDown(e);
@@ -297,10 +305,10 @@ function mouseMove(e) {
 function mouseUp(e) {
   // If the middle mouse button was used, then switch out of the orbit tool
   // and reset to their last tool.
-  if (e.button == g_o3d.Event.BUTTON_MIDDLE) {
-    $('toolselector').style.left = g_lastSelectorLeft;
-    g_currentTool = g_lastTool
-  }
+  // if (e.button == g_o3d.Event.BUTTON_MIDDLE) {
+  //   $('toolselector').style.left = g_lastSelectorLeft;
+  //   g_currentTool = g_lastTool
+  // }
   if (g_currentTool != null) {
     g_currentTool.handleMouseUp(e);
   }
@@ -325,7 +333,7 @@ function $(name) {
 
 // An array of tool objects that will get populated when our base model loads.
 var g_tools = [];
-
+/*
 function selectTool(e, opt_toolNumber) {
   var ICON_WIDTH = 32;
   var toolNumber = opt_toolNumber;
@@ -365,10 +373,9 @@ function selectTool(e, opt_toolNumber) {
   } else {
     g_currentTool = g_tools[toolNumber];
   }
-//  alert(toolNumber);
-// inspect(g_currentTool);
-}
 
+}
+*/
 function loadFile(context, path) {
   function callback(pack, start_move_tool_root, exception) {
     if (exception) {
@@ -427,10 +434,10 @@ function loadFile(context, path) {
       }
     */
     }
-    if (start_move_tool_root != g_floorplanRoot) {
-      selectTool(null, TOOL_MOVE);
-      g_tools[TOOL_MOVE].initializeWithShape(start_move_tool_root);
-    }
+    // if (start_move_tool_root != g_floorplanRoot) {
+    //      selectTool(null, TOOL_MOVE);
+    //      g_tools[TOOL_MOVE].initializeWithShape(start_move_tool_root);
+    //    }
     g_camera.update();
   }
 
@@ -454,20 +461,20 @@ function loadFile(context, path) {
     // Create our set of tools that can be activated.
     // Note: Currently only the Delete, Move, Rotate, Orbit, Pan and Zoom
     // tools are implemented.  The last four icons in the toolbar are unused.
-    g_tools = [
-      new DeleteTool(g_viewInfo.drawContext, g_placedModelsRoot),
-      new MoveTool(g_viewInfo.drawContext, g_placedModelsRoot),
-      new RotateTool(g_viewInfo.drawContext, g_placedModelsRoot),
-      new OrbitTool(g_camera),
-      new PanTool(g_camera),
-      new ZoomTool(g_camera),
-      null,
-      null,
-      null,
-      null
-    ]
+    // g_tools = [
+    //   new DeleteTool(g_viewInfo.drawContext, g_placedModelsRoot),
+    //   new MoveTool(g_viewInfo.drawContext, g_placedModelsRoot),
+    //   new RotateTool(g_viewInfo.drawContext, g_placedModelsRoot),
+    //   new OrbitTool(g_camera),
+    //   new PanTool(g_camera),
+    //   new ZoomTool(g_camera),
+    //   null,
+    //   null,
+    //   null,
+    //   null
+    // ]
 
-    selectTool(null, TOOL_ORBIT);
+    // selectTool(null, TOOL_ORBIT);
   } else {
     // Create a new transform for the loaded file
     new_object_root = g_pack.createObject('o3d.Transform');
@@ -498,6 +505,7 @@ function init() {
 }
 
 function initStep2(clientElements) {
+	
   g_o3dElement = clientElements[0];
 
   var path = window.location.href;
@@ -540,20 +548,19 @@ function initStep2(clientElements) {
   
   doload();
 
-
   o3djs.event.addEventListener(g_o3dElement, 'mousedown', mouseDown);
   o3djs.event.addEventListener(g_o3dElement, 'mousemove', mouseMove);
   o3djs.event.addEventListener(g_o3dElement, 'mouseup', mouseUp);
 
   g_o3dElement.addEventListener('mouseover', dragOver, false);
   // for Firefox
-  g_o3dElement.addEventListener('DOMMouseScroll', scrollMe, false);
+ // g_o3dElement.addEventListener('DOMMouseScroll', scrollMe, false);
   // for Safari
-  g_o3dElement.onmousewheel = scrollMe;
+  //g_o3dElement.onmousewheel = scrollMe;
 
-  document.getElementById('toolpanel').onmousedown = selectTool;
+ // document.getElementById('toolpanel').onmousedown = selectTool;
 
-  // Create our catalog list from the global list of items (g_items).
+ /* // Create our catalog list from the global list of items (g_items).
   html = [];
   for (var i = 0; i < g_items.length; i++) {
     html.push('<div class="catalogItem" onmousedown="startInsertDrag(\'',
@@ -561,19 +568,23 @@ function initStep2(clientElements) {
         'px 0px" title="', g_items[i].title, '"></div>');
   }
   $('itemlist').innerHTML = html.join('');
-
+*/
   // Register a mouse-move event listener to the entire window so that we can
   // catch the click-and-drag events that originate from the list of items
   // and end up in the o3d element.
   document.addEventListener('mousemove', mouseMove, false);
 
-	// createWelcome2();
-	// createWelcome3();
+	createPanels();
+	createWelcome3();
  
+	g_currentTool = new WalkTool(g_camera);
+
 }
 
 // var g_hudQuad;
 // var g_paint;
+
+// create welcome text
 function createWelcome3(){
 	
 	// Make a canvas for text.
@@ -646,7 +657,7 @@ var g_icons = [];
 var g_selectedIndex = 0;
 var g_randSeed = 0;
 	
-function createWelcome2(){
+function createPanels(){
 	// alert("createWecome21");	
    // Create 2 root transforms, one for the 3d parts, one for the 2d parts.
   // This is not strictly neccassary but it is helpful for organization.
@@ -794,11 +805,11 @@ function loadTexture(loader, url, index) {
 function initStep3() {
 	// alert("init3");
   // Setup the hud images.
-  g_radar = new Image(g_textures[6], true);
-  g_radar.transform.translate(3, 1, -2);
-
-  g_radarNeedle = new Image(g_textures[7], false);
-  g_radarNeedle.scaleTransform.translate(0, 0.5, 0);
+  // g_radar = new Image(g_textures[6], true);
+  // g_radar.transform.translate(3, 1, -2);
+  // 
+  // g_radarNeedle = new Image(g_textures[7], false);
+  // g_radarNeedle.scaleTransform.translate(0, 0.5, 0);
 
   g_gaugeBack = new Image(g_textures[3], true);
   g_gaugeBack.transform.translate(201, 17, -2);
@@ -942,12 +953,13 @@ function onrender(renderEvent) {
   //   }
   // }
 
+/*
   // Rotate the radar
   g_radarNeedle.transform.identity();
   g_radarNeedle.transform.translate(93, 89, 0);
   g_radarNeedle.transform.rotateZ(g_clock * 3);
   g_radarNeedle.transform.scale(1, 80, 1);
-	
+	*/
  alert("onredner");
 }
 
@@ -1052,10 +1064,11 @@ function doload(opt_url) {
   } else if ($('url')) {
     url = $('url').value;
   }
+
   g_root = loadFile(g_viewInfo.drawContext, url);
 }
 
-function startInsertDrag(url) {
+/*function startInsertDrag(url) {
   // If no absolute web path was passed, assume it's a local file
   // coming from the assets directory.
   if (url.indexOf('http') != 0) {
@@ -1065,9 +1078,102 @@ function startInsertDrag(url) {
   } else {
     g_urlToInsert = url;
   }
-}
+}*/
 
 function cancelInsertDrag() {
   g_urlToInsert = null;
 }
 
+function WalkTool(camera) {
+  this.camera = camera;
+  this.dragging = false;
+  this.lastOffset = null;
+}
+
+WalkTool.prototype.handleMouseDown = function(e) {
+  var offset = { x: e.x, y: e.y };
+  this.lastOffset = offset;
+  this.dragging = true;
+};
+
+WalkTool.prototype.handleMouseMove = function(e) {
+
+  if (this.dragging && e.x !== undefined) {
+    var offset = { x: e.x, y: e.y };
+
+    dY = (offset.y - this.lastOffset.y);
+    dX = -(offset.x - this.lastOffset.x);
+    this.lastOffset = offset;
+
+    // this.camera.target.x -= (dY * Math.cos(this.camera.eye.rotZ) +
+    //          dX * Math.sin(this.camera.eye.rotZ)) /
+    //          (700 / this.camera.eye.distanceFromTarget);
+    //    this.camera.target.y += (-dY * Math.sin(this.camera.eye.rotZ) +
+    //        dX * Math.cos(this.camera.eye.rotZ)) /
+    //        (700 / this.camera.eye.distanceFromTarget);
+
+		// this.camera.target.y -= dX/2;
+		
+		if (dX != 0){ // look around
+			// use eye as origin for x,y of target 
+			 nx = this.camera.target.x -  this.camera.eye.x; //-20
+			 ny = this.camera.target.y -  this.camera.eye.y; //-20
+			// nl = Math.sqrt(Math.pow(nx,2)+Math.pow(ny,2)); 
+			// 		
+			// a = Math.atan(ny/nx)*180/Math.PI;
+			// a -= 10; // rotate by 5 degree
+			// 		
+			// // calculate new coordinator
+			// nx2 = nl*Math.sin(a*Math.PI/180);
+			// ny2 = nl*Math.cos(a*Math.PI/180);
+			// 		
+			// // move back to origin
+			// this.camera.target.x += nx2;
+			// this.camera.target.y += ny2;
+			a = dX/5*Math.PI/180;
+			
+		   this.camera.target.x = nx*Math.cos(a)-ny*Math.sin(a)+this.camera.eye.x;
+           this.camera.target.y = nx*Math.sin(a)+ny*Math.cos(a)+this.camera.eye.y;
+	 	document.getElementById("debug").innerHTML="<br>a="+a+"<br>nx="+nx+"<br>ny="+ny+"<br>target.x ="+this.camera.target.x+"<br>target.y="+this.camera.target.y;
+
+		  
+		   // document.getElementById("debug").innerHTML="nl="+nl+"<br>a="+a+"<br>nx="+nx+"<br>ny="+ny+"<br>nx2="+nx2+"<br>ny2="+ny2+"<br>target.x="+this.camera.target.x +"<br>target.y="+this.camera.target.y+"<br>eye.x="+this.camera.eye.x +"<br>eye.y="+this.camera.eye.y;
+		}
+  	
+		if (dY != 0){ // move forward or back
+			 step = dY/2;
+			 // distance from eye to target
+		     var distance = Math.sqrt((this.camera.eye.x - this.camera.target.x)*(this.camera.eye.x - this.camera.target.x) +
+				(this.camera.eye.y - this.camera.target.y)*(this.camera.eye.y - this.camera.target.y) + 
+				(this.camera.eye.z - this.camera.target.z)*(this.camera.eye.x - this.camera.target.z)); 
+			// ratio 
+			delta_x = (this.camera.eye.x - this.camera.target.x)/distance;
+			delta_y = (this.camera.eye.y - this.camera.target.y)/distance;
+			delta_z = (this.camera.eye.z - this.camera.target.z)/distance;
+			this.camera.eye.x += delta_x*step;
+			this.camera.eye.y += delta_y*step;
+			this.camera.eye.z += delta_z*step;
+			this.camera.target.x += delta_x*step;
+			this.camera.target.y += delta_y*step;
+			this.camera.target.z += delta_z*step;
+		}
+		// 
+   	  // this.camera.eye.rotZ -= dX / 300;
+      // this.camera.eye.rotH -= dY / 300;
+      //      this.camera.eye.rotH = peg(this.camera.eye.rotH, 0.1, Math.PI - 0.1);
+      // document.getElementById('output').innerHTML = this.camera.eye.rotH;
+    this.camera.update();
+  }
+};
+
+WalkTool.prototype.handleMouseUp = function(e) {
+  this.dragging = false;
+};
+
+WalkTool.prototype.handleKeyDown = function(e) {
+  return false;
+};
+
+WalkTool.prototype.handleKeyUp = function(e) {
+  return false;
+};
