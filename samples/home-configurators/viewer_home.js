@@ -131,10 +131,10 @@ function loadScene(pack, fileName, parent) {
 	parent.translate([-90,0,110]);
     // Get a CameraInfo (an object with a view and projection matrix)
     // using our javascript library function
-    var cameraInfo = o3djs.camera.getViewAndProjectionFromCameras(
-        parent,
-        g_client.width,
-        g_client.height);
+    // var cameraInfo = o3djs.camera.getViewAndProjectionFromCameras(
+    //       parent,
+    //       g_client.width,
+    //       g_client.height);
 
     // Copy the view and projection to the draw context.
     // g_viewInfo.drawContext.view = cameraInfo.view;
@@ -677,9 +677,16 @@ function initStep2(clientElements) {
   g_lightPosParam = paramObject.createParam('lightWorldPos', 'ParamFloat3');
   g_lightPosParam.value = eye;
 
-  
+
   doload();
 
+
+  // load sofa
+   r = loadObject("cbassets/Troy_Sofa.o3dtgz");
+	// r.rotateX(90*Math.PI/180);
+	// r.rotateY(195*Math.PI/180);
+	// r.scale([1/2,1/2,1/2]);
+	r.translate([-20,300,0]);
   o3djs.event.addEventListener(g_o3dElement, 'mousedown', mouseDown);
   o3djs.event.addEventListener(g_o3dElement, 'mousemove', mouseMove);
   o3djs.event.addEventListener(g_o3dElement, 'mouseup', mouseUp);
@@ -716,6 +723,76 @@ init_ani();
 
 }
 
+function loadObject(fileName){
+
+		  // Creates a transform to put our data on.
+  var myDataRoot = g_pack.createObject('Transform');
+
+  // Connects our root to the client root.
+  myDataRoot.parent = g_client.root;
+	var	pack = g_pack;
+	var parent = myDataRoot;
+
+  // Get our full path to the scene
+  var scenePath = o3djs.util.getCurrentURI() + fileName;
+
+  // Load the file given the full path, and call the callback function
+  // when its done loading.
+  g_loadInfo = o3djs.scene.loadScene(
+      g_client, pack, parent, scenePath, callback,
+      { opt_animSource: g_animTimeParam});
+
+return myDataRoot;
+  /**
+   * Our callback is called once the scene has been loaded into memory
+   * from the web or locally.
+   * @param {!o3d.Pack} pack The pack that was passed in above.
+   * @param {!o3d.Transform} parent The parent that was passed in above.
+   * @param {*} exception null if loading succeeded.
+   */
+  function callback(pack, parent, exception) {
+
+    g_loadInfo = null;
+    if (exception) {
+      setStatus('could **not** load ' + fileName + '. ' + exception);
+      return;
+    }
+	
+
+    // Get a CameraInfo (an object with a view and projection matrix)
+    // using our javascript library function
+    // var cameraInfo = o3djs.camera.getViewAndProjectionFromCameras(
+    //       parent,
+    //       g_client.width,
+    //       g_client.height);
+
+    // Copy the view and projection to the draw context.
+    // g_viewInfo.drawContext.view = cameraInfo.view;
+    //    g_viewInfo.drawContext.projection = cameraInfo.projection;
+
+    // Generate draw elements and setup material draw lists.
+    o3djs.pack.preparePack(pack, g_viewInfo);
+
+    var materials = pack.getObjectsByClassName('o3d.Material');
+      for (var m = 0; m < materials.length; ++m) {
+        var material = materials[m];
+        var param = material.getParam('lightWorldPos');
+        if (param) {
+          param.bind(g_lightPosParam);
+        }
+      }
+
+    // Reset the clock.
+    g_aniClock = 0;
+
+    setStatus('');
+
+    g_finished = true;  // for selenium testing.
+
+  }
+
+
+}
 // var g_hudQuad;
 // var g_paint;
 var g_notiQuad;
