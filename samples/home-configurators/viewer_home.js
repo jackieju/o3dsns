@@ -46,7 +46,7 @@ o3djs.require('o3djs.picking');
 o3djs.require('o3djs.scene');
 o3djs.require('o3djs.canvas');
 o3djs.require('o3djs.loader');
-
+o3djs.require('o3djs.camera');
 
 
 var g_root;
@@ -70,9 +70,138 @@ var g_isDraggingItem = false;
 var g_o3dElement = null;
 var g_lastMouseButtonState = 0;
 
+// for onrender
 var g_clock = 0;
 var g_timeMult = 1;
 
+// for cat animation
+var g_aniClock = 0;
+var g_animTimeParam;
+var g_animEndTime = 249 / 30;  // 249 30hz frames.
+var g_loadInfo;
+var g_downloadPercent = -1;
+/** for animation **/
+/**
+ * Sets the status message
+ * @param {string} msg The message.
+ */
+
+function setStatus(msg) {
+  var element = document.getElementById('status');
+  if (element) {
+    element.innerHTML = msg;
+  }
+}
+
+/**
+ * Loads a scene into the transform graph.
+ * @param {!o3d.Pack} pack Pack to load scene into.
+ * @param {string} fileName filename of the scene.
+ * @param {!o3d.Transform} parent parent node in the transform graph to
+ *      which to load the scene into.
+ */
+function loadScene(pack, fileName, parent) {
+  // Get our full path to the scene
+  var scenePath = o3djs.util.getCurrentURI() + fileName;
+
+  // Load the file given the full path, and call the callback function
+  // when its done loading.
+  g_loadInfo = o3djs.scene.loadScene(
+      g_client, pack, parent, scenePath, callback,
+      { opt_animSource: g_animTimeParam});
+
+  /**
+   * Our callback is called once the scene has been loaded into memory
+   * from the web or locally.
+   * @param {!o3d.Pack} pack The pack that was passed in above.
+   * @param {!o3d.Transform} parent The parent that was passed in above.
+   * @param {*} exception null if loading succeeded.
+   */
+  function callback(pack, parent, exception) {
+
+    g_loadInfo = null;
+    if (exception) {
+      setStatus('could **not** load ' + fileName + '. ' + exception);
+      return;
+    }
+	
+	parent.rotateX(90*Math.PI/180);
+	parent.rotateY(195*Math.PI/180);
+	parent.scale([1/2,1/2,1/2]);
+	parent.translate([-90,0,110]);
+    // Get a CameraInfo (an object with a view and projection matrix)
+    // using our javascript library function
+    var cameraInfo = o3djs.camera.getViewAndProjectionFromCameras(
+        parent,
+        g_client.width,
+        g_client.height);
+
+    // Copy the view and projection to the draw context.
+    // g_viewInfo.drawContext.view = cameraInfo.view;
+    //    g_viewInfo.drawContext.projection = cameraInfo.projection;
+
+    // Generate draw elements and setup material draw lists.
+    o3djs.pack.preparePack(pack, g_viewInfo);
+
+    var materials = pack.getObjectsByClassName('o3d.Material');
+      for (var m = 0; m < materials.length; ++m) {
+        var material = materials[m];
+        var param = material.getParam('lightWorldPos');
+        if (param) {
+          param.bind(g_lightPosParam);
+        }
+      }
+
+    // Reset the clock.
+    g_aniClock = 0;
+
+    setStatus('');
+
+    g_finished = true;  // for selenium testing.
+
+  }
+}
+
+function init_ani(){
+
+ // Create a param to bind to the animation.
+  var paramObject = g_pack.createObject('ParamObject');
+  g_animTimeParam = paramObject.createParam('myClock', 'ParamFloat');
+
+  // Creates a transform to put our data on.
+  var myDataRoot = g_pack.createObject('Transform');
+
+  // Connects our root to the client root.
+  myDataRoot.parent = g_client.root;
+
+  // Load the scene into the transform graph as a child myDataRoot
+  loadScene(g_pack, 'assets/kitty_151_idle_stand05_cff1.o3dtgz', myDataRoot);
+
+
+}
+function onrender_ani(render_event){
+// Get the number of seconds since the last render.
+  var elapsedTime = render_event.elapsedTime;
+  g_aniClock += elapsedTime * g_timeMult;
+
+    // Repeat the animation over and over.
+  g_aniClock = g_aniClock % g_animEndTime;
+
+  // Set the time to display.
+  g_animTimeParam.value = g_aniClock;
+
+  if (g_loadInfo) {
+    var progressInfo = g_loadInfo.getKnownProgressInfoSoFar();
+    if (progressInfo.percent != g_downloadPercent) {
+      g_downloadPercent = progressInfo.percent;
+      setStatus('Loading... ' + progressInfo.percent + '%' +
+                ' (' + progressInfo.downloaded +
+                ' of ' + progressInfo.totalBytes + progressInfo.suffix + ')');
+    }
+  }
+}
+
+/****************************/
 /**
  * Retrieve the absolute position of an element on the screen.
  */
@@ -579,7 +708,10 @@ function initStep2(clientElements) {
 
 	createPanels();
 	createWelcome3();
- 
+	
+ // init for cat animation
+
+init_ani();
 	g_currentTool = new WalkTool(g_camera);
 
 }
@@ -988,6 +1120,11 @@ function onrender(renderEvent) {
   var elapsedTime = renderEvent.elapsedTime;
   g_clock += elapsedTime * g_timeMult;
   g_selectedIndex = Math.floor(g_clock / 3) % 3;
+
+/** for animation **/
+    onrender_ani(renderEvent);
+/********************/
+
 
 
   // Fly the camera around the city.
