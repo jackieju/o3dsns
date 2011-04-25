@@ -70,6 +70,9 @@ var g_isDraggingItem = false;
 var g_o3dElement = null;
 var g_lastMouseButtonState = 0;
 
+var g_clock = 0;
+var g_timeMult = 1;
+
 /**
  * Retrieve the absolute position of an element on the screen.
  */
@@ -935,7 +938,7 @@ function initStep3() {
   // }
 
   // Setup an onrender callback for animation.
-  // g_client.setRenderCallback(onrender);
+   g_client.setRenderCallback(onrender);
 
   g_finished = true;  // for selenium testing.
 // alert("init3000");
@@ -970,16 +973,22 @@ function resetIcons() {
   }
 }
 
+var render_count = 0;
 /**
  * Called every frame.
  * @param {!o3d.RenderEvent} renderEvent Rendering Information.
  */
 function onrender(renderEvent) {
-
+	render_count ++;
+	if (render_count > 1){
+		render_count = 0;
+	}else
+		return;
+	
   var elapsedTime = renderEvent.elapsedTime;
   g_clock += elapsedTime * g_timeMult;
-
   g_selectedIndex = Math.floor(g_clock / 3) % 3;
+
 
   // Fly the camera around the city.
   // var eye = [
@@ -991,20 +1000,29 @@ function onrender(renderEvent) {
   //     eye,
   //     [0, 0, 0],  // target
   //     [0, 1, 0]); // up
-
-  for (var i = 0; i < g_icons.length; i++) {
-    var icon = g_icons[i];
+    var icon = g_icons[g_selectedIndex];
     icon.transform.identity();
     icon.transform.translate(
-        634 + 6 + 64, 17 + i * 140 + 5 + 64, -1);
-    if (i == g_selectedIndex) {
-      icon.transform.rotateZ(g_clock * -1);
+        634 + 6 + 64, 17 + g_selectedIndex * 140 + 5 + 64, -1);
+	icon.transform.rotateZ(g_clock * -1);
       var scale = Math.sin(g_clock * 15) * 0.1 + 0.7;
       icon.transform.scale(scale, scale, 1);
-    } else {
-      icon.transform.scale(0.8, 0.8, 0);
-    }
-  }
+
+  // for (var i = 0; i < g_icons.length; i++) {
+  //     var icon = g_icons[i];
+  //     icon.transform.identity();
+  //     icon.transform.translate(
+  //         634 + 6 + 64, 17 + i * 140 + 5 + 64, -1);
+  //     if (i == g_selectedIndex) {
+  //       icon.transform.rotateZ(g_clock * -1);
+  //       var scale = Math.sin(g_clock * 15) * 0.1 + 0.7;
+  //       icon.transform.scale(scale, scale, 1);
+  //     } else {
+  //       icon.transform.scale(0.8, 0.8, 0);
+  //     }
+  //   }
+
+// document.getElementById("clock").innerHTML="<br>clock:"+g_clock+"<br>elapsedTime:"+elapsedTime+"<br>g_selectedIndex:"+g_selectedIndex;
 
   // // Adjust the gauges
   // for (var ii = 0; ii < 3; ++ii) {
@@ -1038,7 +1056,7 @@ function onrender(renderEvent) {
   g_radarNeedle.transform.rotateZ(g_clock * 3);
   g_radarNeedle.transform.scale(1, 80, 1);
 	*/
- alert("onredner");
+ // alert("onredner2");
 }
 
 /**
@@ -1228,12 +1246,19 @@ WalkTool.prototype.handleMouseMove = function(e) {
 			delta_x = (this.camera.eye.x - this.camera.target.x)/distance;
 			delta_y = (this.camera.eye.y - this.camera.target.y)/distance;
 			delta_z = (this.camera.eye.z - this.camera.target.z)/distance;
-			this.camera.eye.x += delta_x*step;
-			this.camera.eye.y += delta_y*step;
-			this.camera.eye.z += delta_z*step;
-			this.camera.target.x += delta_x*step;
-			this.camera.target.y += delta_y*step;
-			this.camera.target.z += delta_z*step;
+			nx = this.camera.eye.x + delta_x*step;
+			if (nx <150 && nx >-300){
+				this.camera.eye.x = nx;
+				this.camera.target.x += delta_x*step;
+			}
+			ny = this.camera.eye.y + delta_y*step;
+			if (ny >-600 && ny < 430){
+				this.camera.eye.y =ny;
+				this.camera.target.y += delta_y*step;
+			}
+			// do not change z
+			// this.camera.eye.z += delta_z*step;
+			// 		this.camera.target.z += delta_z*step;
 		}
 		// 
    	  // this.camera.eye.rotZ -= dX / 300;
