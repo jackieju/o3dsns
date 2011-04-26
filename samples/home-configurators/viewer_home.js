@@ -1389,7 +1389,10 @@ alert("welcome");
 /******** photo wall ********/
 function createPhotoWall(){
 
-	
+	  var redMaterial = o3djs.material.createBasicMaterial(
+    g_pack,
+    g_viewInfo,
+    [0.2, 1, 0.2, 1]);  // green
 
 		var loader = o3djs.loader.createLoader(callback1);   
     	// loadTexture2(loader, "assets/purple-flower.png");  
@@ -1439,13 +1442,18 @@ function createPhotoWall(){
 				  				var topTransform = g_pack.createObject('Transform');
 					  	      topTransform.parent = g_client.root;
 				
-					  	      topTransform.translate(-60-20*j, 180, 60-i*15);
+					  	      topTransform.translate(-60-20*j+3*g_math.pseudoRandom(), 180, 60-i*15+3*g_math.pseudoRandom());
 							// topTransform.scale([20,20,20]);
-								 topTransform.rotateY(g_math.degToRad(145+90*g_math.pseudoRandom() ));
+								 topTransform.rotateY(g_math.degToRad(150+60*g_math.pseudoRandom() ));
 								
 								// add shape
 	  	    				  topTransform.addShape(pillarPlane);
-					 		 
+	
+	  // Create a cylinder.
+  var cylinderShape = o3djs.primitives.createCylinder(
+      g_pack, redMaterial, 0.5, 5, 20, 1,
+      g_math.matrix4.translation([-5, 0, -4]));
+		topTransform.addShape(cylinderShape);			 		 
 						}
 					}
 				}
