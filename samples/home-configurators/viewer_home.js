@@ -687,6 +687,9 @@ function initStep2(clientElements) {
 	// r.rotateY(195*Math.PI/180);
 	// r.scale([1/2,1/2,1/2]);
 	r.translate([-20,300,0]);
+	
+
+	
   o3djs.event.addEventListener(g_o3dElement, 'mousedown', mouseDown);
   o3djs.event.addEventListener(g_o3dElement, 'mousemove', mouseMove);
   o3djs.event.addEventListener(g_o3dElement, 'mouseup', mouseUp);
@@ -715,7 +718,7 @@ function initStep2(clientElements) {
 
 	createPanels();
 	createWelcome3();
-	
+		createPhotoWall();
  // init for cat animation
 
 init_ani();
@@ -1087,6 +1090,28 @@ function loadTexture(loader, url, index) {
     }
   });
 }
+var g_photoTexture = [];
+var g_photoTextureUrls = [
+"1.jpg",
+"http://www.google.com.sg/images/logos/ps_logo2.png",
+"1.jpg",
+"http://www.google.com.sg/images/logos/ps_logo2.png",
+"1.jpg",
+"http://www.google.com.sg/images/logos/ps_logo2.png",
+"1.jpg",
+"http://www.google.com.sg/images/logos/ps_logo2.png"
+];
+function loadTexture2(loader, url, index) {
+  loader.loadTexture(g_pack, url, function(texture, exception) {
+     if (exception) {
+      alert(exception);
+    } else {
+
+      g_photoTexture[index] = texture;
+    }
+  });
+
+}
 
 /**
  * Now that the textures are loaded continue.
@@ -1360,6 +1385,107 @@ g_finished = true;
 
 alert("welcome");
 }
+
+/******** photo wall ********/
+function createPhotoWall(){
+
+	
+
+		var loader = o3djs.loader.createLoader(callback1);   
+    	// loadTexture2(loader, "assets/purple-flower.png");  
+		for (i = 0; i< g_photoTextureUrls.length;i++){
+		loadTexture2(loader, g_photoTextureUrls[i], i);
+	}
+		loader.finish();
+
+		  // // var param = o3djs.material.createAndBindStandardParams(g_pack);
+		  //   		// param.lightWorldPos.value = [30, 60, 40];
+		  //   		//   		param.lightColor.value = [1, 1, 1, 1];
+		  // 			 var param = material.getParam('lightWorldPos');
+		  //       if (param) {
+		  //         param.bind(g_lightPosParam);
+		  //       }   else{
+		  // 				param = o3djs.material.createStandardParams(g_pack);
+		  // 				param = material.getParam('lightWorldPos');
+		  // 					alert(param);
+		  // 				param.bind(g_lightPosParam);
+		  // 			}
+	 function callback1(){
+			  for (i = 0; i < 3; i++){
+					for (j = 0; j < 5; j++){
+			var material11 = o3djs.material.createMaterialFromFile(g_pack, 'shaders/texture-only.shader', g_viewInfo.performanceDrawList);
+
+	// var material11 = o3djs.material.createConstantMaterial(g_pack, g_viewInfo, [1,1,1,1],  false);
+				 var pillarPlane = o3djs.primitives.createPlane(g_pack, material11, 15, 10, 1, 1
+		//,
+	  	// g_math.mulMatrixMatrix4(g_math.mulMatrixMatrix4(
+	  	// 		g_math.matrix4.rotationX(g_math.degToRad(10)),
+	  	// 	    g_math.matrix4.rotationZ(g_math.degToRad(10))
+	  	// 	  ),
+	  	// 	g_math.matrix4.rotationY(g_math.degToRad(0))
+	// )
+	  );
+				
+				
+						t = g_photoTexture[i*3+j];
+						if (t!=null){
+							// prepare texture
+							   var sampler = material11.getParam('texSampler0').value;
+	  	         			  sampler.texture = t ;
+				  	           sampler.addressModeU = g_o3d.Sampler.CLAMP;
+				  	           sampler.addressModeV = g_o3d.Sampler.CLAMP;
+				
+							// prepare transform
+				  				var topTransform = g_pack.createObject('Transform');
+					  	      topTransform.parent = g_client.root;
+				
+					  	      topTransform.translate(-60-20*j, 180, 60-i*15);
+							// topTransform.scale([20,20,20]);
+								 topTransform.rotateY(g_math.degToRad(145+90*g_math.pseudoRandom() ));
+								
+								// add shape
+	  	    				  topTransform.addShape(pillarPlane);
+					 		 
+						}
+					}
+				}
+
+	 // g_globalParams = o3djs.material.createAndBindStandardParams(g_pack);
+	 //   g_globalParams.lightWorldPos.value = [30, 60, 40];
+	 //   g_globalParams.lightColor.value = [1, 1, 1, 1];
+		// var materials = g_pack.getObjectsByClassName('o3d.Material');
+				// 			      for (var m = 0; m < materials.length; ++m) {
+				// 			        var material1 = materials[m];
+				// 			        var param = material1.getParam('lightWorldPos');
+				// 			        if (param) {
+				// 			          param.bind(g_lightPosParam);
+				// 			        }
+				// 			      }
+	
+	  	    
+		
+	
+				// var materials = g_pack.getObjectsByClassName('o3d.Material');
+				// 			      for (var m = 0; m < materials.length; ++m) {
+				// 			        var material1 = materials[m];
+				// 			        var param = material1.getParam('lightWorldPos');
+				// 			        if (param) {
+				// 			          param.bind(g_lightPosParam);
+				// 			        }
+				// 			      }
+	// alert("fa");
+	
+	}
+	
+
+
+}
+
+
+
+
+/****************************/
+
 function dragOver(e) {
   if (g_urlToInsert != null) {
     doload(g_urlToInsert);

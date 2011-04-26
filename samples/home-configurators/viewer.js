@@ -538,7 +538,7 @@ function initStep2(clientElements) {
   g_lightPosParam.value = eye;
 
   
-  doload();
+ doload();
 
 
   o3djs.event.addEventListener(g_o3dElement, 'mousedown', mouseDown);
@@ -566,6 +566,8 @@ function initStep2(clientElements) {
   // catch the click-and-drag events that originate from the list of items
   // and end up in the o3d element.
   document.addEventListener('mousemove', mouseMove, false);
+
+
 
 	// createWelcome2();
 	// createWelcome3();
