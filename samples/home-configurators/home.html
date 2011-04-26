@@ -126,6 +126,40 @@ var g_buildingAsset = '/cbassets/House_Roofless.o3dtgz';
 
 </script>
 <body onload="init();" onresize="resize();">
+<div id="fb-root"></div>
+<script src="http://connect.facebook.net/en_US/all.js"></script>
+<script>
+  FB.init({
+    appId  : '179677018747566',
+    status : true, // check login status
+    cookie : true, // enable cookies to allow the server to access the session
+    xfbml  : true  // parse XFBML
+  });
+// FB.api('/me', function(response) {
+//   alert(response.name);
+// });
+FB.getLoginStatus(function(response) {
+  if (response.session) {
+    // logged in and connected user, someone you know
+	alert("login");
+  } else {
+    // no user session available, someone you dont know
+	alert("not login");
+  }
+});
+FB.login(function(response) {
+  if (response.session) {
+    // user successfully logged in
+alert("login ok");
+  } else {
+    // user cancelled login
+	alert("not login");
+  }
+});
+
+alert("fdsa");
+
+</script>
 
 <div id="status" style="position:absolute;left:500;top:70;border:1px solid #eeeeff;height:20px;font-size:9pt;padding:3px;font-family:Arial;" >
 	
